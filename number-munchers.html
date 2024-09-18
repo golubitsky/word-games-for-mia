@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Number Munchers-like Game</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: Arial, sans-serif;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(10, 40px);
+        grid-template-rows: repeat(10, 40px);
+        gap: 1px;
+        margin-bottom: 20px;
+      }
+      .cell {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #ddd;
+        border: 1px solid #999;
+        font-size: 14px;
+      }
+      .character {
+        background-color: yellow;
+      }
+      .good {
+        color: green;
+        font-weight: bold;
+      }
+      .other {
+        color: red;
+      }
+      .status-pane {
+        font-size: 18px;
+        margin-bottom: 20px;
+      }
+      .status-item {
+        margin: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="status-pane">
+      <span class="status-item" id="score">Score: 0</span>
+      <span class="status-item" id="lives">Lives: 3</span>
+    </div>
+    <div class="grid" id="grid"></div>
+
+    <script>
+      // Game configuration
+      const gridSize = 10;
+      const goodValues = [2, 4, 6, 8];
+      const otherValues = [1, 3, 5, 7, 9];
+      let score = 0;
+      let lives = 3;
+
+      // Data Model
+      const gameGrid = [];
+      let characterPosition = { x: 0, y: 0 };
+
+      // Utility function to generate random value from an array
+      function getRandomValue(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+
+      // Create the grid model and distribute values
+      function generateGrid() {
+        for (let y = 0; y < gridSize; y++) {
+          const row = [];
+          for (let x = 0; x < gridSize; x++) {
+            const isGood = Math.random() < 0.5; // 50/50 chance
+            const value = isGood
+              ? getRandomValue(goodValues)
+              : getRandomValue(otherValues);
+            row.push({ value, type: isGood ? "good" : "other" });
+          }
+          gameGrid.push(row);
+        }
+      }
+
+      // Render the grid in the HTML
+      function renderGrid() {
+        const gridElement = document.getElementById("grid");
+        gridElement.innerHTML = ""; // Clear previous grid
+
+        for (let y = 0; y < gridSize; y++) {
+          for (let x = 0; x < gridSize; x++) {
+            const cell = document.createElement("div");
+            cell.classList.add("cell");
+
+            const cellData = gameGrid[y][x];
+            if (cellData.type === "good") {
+              cell.classList.add("good");
+            } else {
+              cell.classList.add("other");
+            }
+
+            if (x === characterPosition.x && y === characterPosition.y) {
+              cell.classList.add("character");
+            }
+
+            cell.textContent = cellData.value;
+            gridElement.appendChild(cell);
+          }
+        }
+      }
+
+      // Update score and lives in the status pane
+      function updateStatus() {
+        document.getElementById("score").textContent = `Score: ${score}`;
+        document.getElementById("lives").textContent = `Lives: ${lives}`;
+      }
+
+      // Handle character movement with arrow keys
+      function moveCharacter(dx, dy) {
+        const newX = characterPosition.x + dx;
+        const newY = characterPosition.y + dy;
+
+        if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize) {
+          characterPosition.x = newX;
+          characterPosition.y = newY;
+          renderGrid();
+        }
+      }
+
+      // Clear the current cell and evaluate the score
+      function clearCell() {
+        const { x, y } = characterPosition;
+        const cellData = gameGrid[y][x];
+
+        // Check if it's a "good" value or an "other" value
+        if (cellData.type === "good") {
+          score++;
+        } else {
+          lives--;
+        }
+
+        // Clear the value in the current cell
+        cellData.value = "";
+        cellData.type = "cleared";
+
+        renderGrid();
+        updateStatus();
+
+        // Check for game over
+        if (lives <= 0) {
+          alert("Game Over! You've run out of lives.");
+          resetGame();
+        }
+      }
+
+      // Listen for key events to move the character and interact
+      window.addEventListener("keydown", (e) => {
+        switch (e.key) {
+          case "ArrowUp":
+            moveCharacter(0, -1);
+            break;
+          case "ArrowDown":
+            moveCharacter(0, 1);
+            break;
+          case "ArrowLeft":
+            moveCharacter(-1, 0);
+            break;
+          case "ArrowRight":
+            moveCharacter(1, 0);
+            break;
+          case " ":
+            clearCell(); // Press space to clear the current cell
+            break;
+        }
+      });
+
+      function resetGame() {
+        score = 0;
+        lives = 3;
+        gameGrid.length = 0;
+        generateGrid();
+        renderGrid();
+        updateStatus();
+      }
+
+      resetGame();
+    </script>
+  </body>
+</html>
