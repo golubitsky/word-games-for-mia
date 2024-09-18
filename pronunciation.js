@@ -13,7 +13,7 @@ async function loadPronunciation(filePath) {
     if (/^[A-Z]/.test(line)) {
       const parts = line.split(/\s+/);
 
-      const word = parts[0];
+      const word = parts[0].toLowerCase();
       const phonemes = parts.slice(1);
 
       // Ignore words with numbers, like ADELMAN(1), or apostrophes, like AIDE'S
@@ -43,7 +43,7 @@ function groupsOfWordsWithSamePronunciation(dictionary) {
   );
 }
 
-async function loadPronunciationGroups(filename) {
+async function loadGroups(filename) {
   try {
     const dictionary = await loadPronunciation(filename);
     return groupsOfWordsWithSamePronunciation(dictionary);
@@ -52,5 +52,4 @@ async function loadPronunciationGroups(filename) {
   }
 }
 
-
-module.exports = loadPronunciationGroups;
+module.exports = { loadPronunciation, loadGroups };
